@@ -16,6 +16,3 @@ class Card(db.Model):
             'front': self.front,
             'back': self.back
         }
-
-    def __repr__(self):
-        return f'<Card {self.front}>'

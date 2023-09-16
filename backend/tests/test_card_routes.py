@@ -82,8 +82,7 @@ class TestCardRoutes(TestEnvironment):
         self.assertEqual(response.status_code, 404)
 
     def test_search_cards_nonexistent_deck(self):
-        self.client.delete('/user', headers=self.authorization2)
-        response = self.client.get('/deck/4/cards', headers=self.authorization2)
+        response = self.client.get('/deck/5/cards', headers=self.authorization2)
         self.assertEqual(response.status_code, 404)
 
     def test_search_cards_shared_deck(self):

@@ -19,6 +19,3 @@ class Deck(db.Model):
             'author': self.author.username,
             'cards_count': len(self.cards)
         }
-
-    def __repr__(self):
-        return f'<Deck {self.name}>'

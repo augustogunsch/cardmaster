@@ -35,6 +35,19 @@ class TestUserRoutes(TestEnvironment):
         self.assertEqual(response.status_code, 400)
         self.assertEqual(data['message'], 'Username already exists')
 
+    def test_get_own_user(self):
+        response = self.client.get('/user', headers=self.authorization1)
+        data = response.get_json()
+
+        self.assertEqual(response.status_code, 200)
+
+    def test_get_own_user_deleted(self):
+        self.client.delete('/user', headers=self.authorization1)
+        response = self.client.get('/user', headers=self.authorization1)
+        data = response.get_json()
+
+        self.assertEqual(response.status_code, 404)
+
     def test_get_user(self):
         response = self.client.get('/user/1')
         data = response.get_json()

@@ -24,6 +24,3 @@ class User(db.Model):
             'id': self.id,
             'username': self.username
         }
-
-    def __repr__(self):
-        return f'<User {self.username}>'
