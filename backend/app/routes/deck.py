@@ -5,7 +5,7 @@ from ..util.auth import token_required
 
 deck_bp = Blueprint('deck', __name__)
 
-@deck_bp.route('/decks', methods=['POST'])
+@deck_bp.route('/deck', methods=['POST'])
 @token_required
 def create_deck(jwt_data):
     user = db.session.get(User, jwt_data['user_id'])
@@ -19,13 +19,13 @@ def create_deck(jwt_data):
     if not name:
         return jsonify({'message': 'Deck name is required'}), 400
 
-    deck = Deck(name=name, owner=user)
+    deck = Deck(name=name, author=user, user=user)
     db.session.add(deck)
     db.session.commit()
 
-    return jsonify({'message': 'Deck created successfully'}), 201
+    return jsonify({'data': deck.get_json()}), 201
 
-@deck_bp.route('/decks/<int:deck_id>', methods=['GET'])
+@deck_bp.route('/deck/<int:deck_id>', methods=['GET'])
 @token_required
 def get_deck(jwt_data, deck_id):
     user = db.session.get(User, jwt_data['user_id'])
@@ -38,12 +38,12 @@ def get_deck(jwt_data, deck_id):
     if not deck:
         return jsonify({'message': 'Deck not found'}), 404
 
-    if not deck.shared and deck.owner_id != user.id:
-        return jsonify({'message': 'You do not own this deck'}), 401
+    if not deck.shared and deck.user_id != user.id:
+        return jsonify({'message': 'You do not own this deck'}), 403
 
-    return jsonify({'id': deck.id, 'name': deck.name, 'owner': deck.owner.username}), 200
+    return jsonify(deck.get_json()), 200
 
-@deck_bp.route('/decks/<int:deck_id>', methods=['PUT'])
+@deck_bp.route('/deck/<int:deck_id>', methods=['PUT'])
 @token_required
 def update_deck(jwt_data, deck_id):
     user = db.session.get(User, jwt_data['user_id'])
@@ -56,21 +56,21 @@ def update_deck(jwt_data, deck_id):
     if not deck:
         return jsonify({'message': 'Deck not found'}), 404
 
-    if deck.owner_id != user.id:
-        return jsonify({'message': 'You do not have permission to update this deck'}), 403
+    if deck.user_id != user.id:
+        return jsonify({'message': 'You do not own this deck'}), 403
 
     data = request.json
 
-    name = data.get('name') or deck.name
-    shared = data.get('shared') or deck.shared
+    name = data.get('name', deck.name)
+    shared = data.get('shared', False)
 
     deck.name = name
     deck.shared = shared
     db.session.commit()
 
-    return jsonify({'message': 'Deck updated successfully'}), 200
+    return jsonify({'data': deck.get_json()}), 200
 
-@deck_bp.route('/decks/<int:deck_id>', methods=['DELETE'])
+@deck_bp.route('/deck/<int:deck_id>', methods=['DELETE'])
 @token_required
 def delete_deck(jwt_data, deck_id):
     user = db.session.get(User, jwt_data['user_id'])
@@ -83,61 +83,32 @@ def delete_deck(jwt_data, deck_id):
     if not deck:
         return jsonify({'message': 'Deck not found'}), 404
 
-    if deck.owner_id != user.id:
-        return jsonify({'message': 'You do not have permission to delete this deck'}), 403
+    if deck.user_id != user.id:
+        return jsonify({'message': 'You do not own this deck'}), 403
 
     db.session.delete(deck)
     db.session.commit()
 
-    return jsonify({'message': 'Deck deleted successfully'}), 200
-
-@deck_bp.route('/decks/shared', methods=['GET'])
-def get_shared_decks():
-    query = request.args.get('query')
-
-    if query:
-        decks = Deck.query.filter(Deck.shared.is_(True), Deck.name.ilike(f'%{query}%')).all()
-    else:
-        decks = Deck.query.filter_by(shared=True).all()
-
-    deck_list = [{'id': deck.id, 'name': deck.name} for deck in decks]
-    return jsonify(deck_list), 200
-
-@deck_bp.route('/decks/owned', methods=['GET'])
-@token_required
-def get_owned_decks(jwt_data):
-    user = db.session.get(User, jwt_data['user_id'])
-
-    if not user:
-        return jsonify({'message': 'User not found'}), 404
-
-    owned_decks = [{'id': deck.id, 'name': deck.name} for deck in user.decks_owned]
-    return jsonify(owned_decks), 200
+    return jsonify({'data': deck.get_json()}), 200
 
 @deck_bp.route('/decks', methods=['GET'])
-@token_required
-def get_collected_decks(jwt_data):
-    user = db.session.get(User, jwt_data['user_id'])
+def search_decks():
+    q = request.args.get('q')
+    limit = request.args.get('limit')
+    offset = request.args.get('offset')
 
-    if not user:
-        return jsonify({'message': 'User not found'}), 404
+    query = Deck.query.filter(Deck.shared == True)
 
-    return jsonify(user.decks), 200
+    if q:
+        query = query.filter(Deck.name.ilike(f'%{q}%'))
 
-@deck_bp.route('/decks/add/<int:deck_id>', methods=['POST'])
-@token_required
-def add_deck_to_collection(jwt_data, deck_id):
-    user = db.session.get(User, jwt_data['user_id'])
+    if limit:
+        query = query.limit(limit)
 
-    if not user:
-        return jsonify({'message': 'User not found'}), 404
+        if offset:
+            query = query.offset(offset)
 
-    deck = db.session.get(Deck, deck_id)
+    decks = query.all()
 
-    if not deck:
-        return jsonify({'message': 'Deck not found'}), 404
-
-    user.decks.append(deck)
-    db.session.commit()
-
-    return jsonify({'message': 'Deck added to your collection'}), 200
+    deck_list = [deck.get_json() for deck in decks]
+    return jsonify({'data': deck_list}), 200

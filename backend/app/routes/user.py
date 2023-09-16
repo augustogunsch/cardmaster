@@ -1,11 +1,11 @@
 from flask import Blueprint, request, jsonify
-from ..models import User
+from ..models import User, Card, Deck
 from ..extensions import db
 from ..util.auth import token_required
 
 user_bp = Blueprint('user', __name__)
 
-@user_bp.route('/users', methods=['POST'])
+@user_bp.route('/user', methods=['POST'])
 def create_user():
     data = request.get_json()
     username = data.get('username')
@@ -22,35 +22,48 @@ def create_user():
     db.session.add(new_user)
     db.session.commit()
 
-    return jsonify({'message': 'User created successfully'}), 201
+    return jsonify({'data': new_user.get_json()}), 201
 
-@user_bp.route('/users/<int:user_id>', methods=['GET'])
+@user_bp.route('/user/<int:user_id>', methods=['GET'])
 def get_user(user_id):
     user = db.session.get(User, user_id)
+
     if not user:
         return jsonify({'message': 'User not found'}), 404
 
-    user_data = {
-        'id': user.id,
-        'username': user.username,
-    }
-    return jsonify(user_data), 200
+    return jsonify({'data': user.get_json()}), 200
 
-@user_bp.route('/users/search', methods=['GET'])
+@user_bp.route('/user', methods=['GET'])
+@token_required
+def get_own_user(jwt_data):
+    user = db.session.get(User, jwt_data['user_id'])
+
+    if not user:
+        return jsonify({'message': 'User not found'}), 404
+
+    return jsonify({'data': user.get_json()}), 200
+
+@user_bp.route('/users', methods=['GET'])
 def search_users():
-    query = request.args.get('q')
+    q = request.args.get('q')
+    limit = request.args.get('limit')
+    offset = request.args.get('offset')
 
-    if not query:
-        return jsonify({'message': 'Please provide a search query'}), 400
+    query = db.session.query(User)
 
-    users = User.query.filter(User.username.ilike(f'%{query}%')).all()
+    if q:
+        query = query.filter(User.username.ilike(f'%{q}%'))
 
-    if not users:
-        return jsonify({'message': 'No users found for the given query'}), 404
+    if limit:
+        query = query.limit(limit)
 
-    result = [{'id': user.id, 'username': user.username} for user in users]
+        if offset:
+            query = query.offset(offset)
 
-    return jsonify(result), 200
+    users = query.all()
+
+    result = [user.get_json() for user in users]
+    return jsonify({'data': result}), 200
 
 @user_bp.route('/user', methods=['PUT'])
 @token_required
@@ -61,15 +74,23 @@ def update_user(jwt_data):
         return jsonify({'message': 'User not found'}), 404
 
     data = request.get_json()
-    new_username = data.get('username')
+    username = data.get('username', user.username)
+    password = data.get('password')
+    current_password = data.get('current_password')
 
-    if new_username is None:
-        return jsonify({'message': 'Username is required for updating'}), 400
+    if password:
+        if not current_password:
+            return jsonify({'message': 'Please provide current password'}), 400
 
-    user.username = new_username
+        if not user.check_password(current_password):
+            return jsonify({'message': 'Provided password does not match with current password'}), 401
+
+        user.set_password(password)
+
+    user.username = username
     db.session.commit()
 
-    return jsonify({'message': 'User updated successfully'}), 200
+    return jsonify({'data': user.get_json()}), 200
 
 @user_bp.route('/user', methods=['DELETE'])
 @token_required
@@ -82,4 +103,58 @@ def delete_user(jwt_data):
     db.session.delete(user)
     db.session.commit()
 
-    return jsonify({'message': 'User deleted successfully'}), 200
+    return jsonify({'data': user.get_json()}), 200
+
+@user_bp.route('/user/decks/<int:deck_id>', methods=['POST'])
+@token_required
+def add_deck(jwt_data, deck_id):
+    user = db.session.get(User, jwt_data['user_id'])
+
+    if not user:
+        return jsonify({'message': 'User not found'}), 404
+
+    deck = db.session.get(Deck, deck_id)
+
+    if not deck:
+        return jsonify({'message': 'Deck not found'}), 404
+
+    if deck in user.decks:
+        return jsonify({'message': 'You already have this deck in your collection'}), 400
+
+    new_deck = Deck(name=deck.name, author=deck.author, user=user)
+    db.session.add(new_deck)
+    db.session.commit()
+    db.session.refresh(new_deck)
+
+    db.session.add_all(Card(front=card.front, back=card.back, deck=new_deck) for card in deck.cards)
+    db.session.commit()
+
+    return jsonify({'data': deck.get_json()}), 201
+
+@user_bp.route('/user/decks', methods=['GET'])
+@token_required
+def search_user_decks(jwt_data):
+    user = db.session.get(User, jwt_data['user_id'])
+
+    if not user:
+        return jsonify({'message': 'User not found'}), 404
+
+    q = request.args.get('q')
+    limit = request.args.get('limit')
+    offset = request.args.get('offset')
+
+    query = Deck.query.filter(Deck.user_id == user.id)
+
+    if q:
+        query = query.filter(Deck.name.ilike(f'%{q}%'))
+
+    if limit:
+        query = query.limit(limit)
+
+        if offset:
+            query = query.offset(offset)
+
+    decks = query.all()
+
+    data = [deck.get_json() for deck in decks]
+    return jsonify({'data': data}), 200

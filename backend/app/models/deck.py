@@ -1,20 +1,24 @@
 from ..extensions import db
 from .card import Card
 
-deck_user_association = db.Table(
-    'deck_user_association',
-    db.Column('user_id', db.Integer, db.ForeignKey('user.id')),
-    db.Column('deck_id', db.Integer, db.ForeignKey('deck.id'))
-)
-
 class Deck(db.Model):
     id = db.Column(db.Integer, primary_key=True)
     name = db.Column(db.String(100), nullable=False)
     shared = db.Column(db.Boolean, default=False)
-    users = db.relationship('User', secondary=deck_user_association, back_populates='decks')
-    owner_id = db.Column(db.Integer, db.ForeignKey('user.id', name='fk_deck_owner_id'), nullable=False)
-    owner = db.relationship('User', back_populates='decks_owned', foreign_keys=[owner_id])
-    cards = db.relationship('Card', back_populates='deck', foreign_keys=[Card.deck_id])
+    user_id = db.Column(db.Integer, db.ForeignKey('user.id', name='fk_deck_user_id'), nullable=False)
+    user = db.relationship('User', back_populates='decks', foreign_keys=[user_id])
+    author_id = db.Column(db.Integer, db.ForeignKey('user.id', name='fk_deck_author_id'), nullable=False)
+    author = db.relationship('User', back_populates='decks_created', foreign_keys=[author_id])
+    cards = db.relationship('Card', back_populates='deck', foreign_keys=[Card.deck_id], cascade='all, delete-orphan')
+
+    def get_json(self):
+        return {
+            'id': self.id,
+            'name': self.name,
+            'user': self.user.username,
+            'author': self.author.username,
+            'cards_count': len(self.cards)
+        }
 
     def __repr__(self):
         return f'<Deck {self.name}>'

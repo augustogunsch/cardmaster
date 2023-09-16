@@ -1,78 +1,191 @@
 import unittest
 import json
 from flask import Flask
-from app import create_app
 from app.extensions import db
-from app.models import User, Deck, Card
-from .config import Config
+from app.models import Card
+from .environment import TestEnvironment
 
-class TestCardRoutes(unittest.TestCase):
-
-    def setUp(self):
-        self.app = create_app(Config)
-        self.client = self.app.test_client()
-
-        self.app_context = self.app.app_context()
-        self.app_context.push()
-
-        db.create_all()
-        self.user = User(username='testuser', password='testpassword')
-        db.session.add(self.user)
-        db.session.commit()
-        db.session.refresh(self.user)
-        self.deck = Deck(name='Test Deck', owner=self.user)
-        db.session.add(self.deck)
-        db.session.commit()
-        db.session.refresh(self.deck)
-
-        auth_response = self.client.post('/auth', json={'username': 'testuser', 'password': 'testpassword'})
-        self.assertEqual(auth_response.status_code, 200)
-        self.authorization = {'Authorization': auth_response.json['token']}
-
-    def tearDown(self):
-        with self.app.app_context():
-            db.session.remove()
-            db.drop_all()
-        self.app_context.pop()
+class TestCardRoutes(TestEnvironment):
 
     def test_create_card(self):
         data = {'front': 'Front of Card', 'back': 'Back of Card'}
-        response = self.client.post(f'/decks/{self.deck.id}/cards', json=data, headers=self.authorization)
+        response = self.client.post('/deck/1/card', json=data, headers=self.authorization1)
         self.assertEqual(response.status_code, 201)
+        card1 = db.session.get(Card, 4)
+        self.assertIsNotNone(card1)
+        card2 = db.session.get(Card, 5)
+        self.assertIsNone(card2)
 
-    def test_get_cards(self):
-        response = self.client.get(f'/decks/{self.deck.id}/cards', headers=self.authorization)
+    def test_create_card_user_deleted(self):
+        self.client.delete('/user', headers=self.authorization1)
+        data = {'front': 'Front of Card', 'back': 'Back of Card'}
+        response = self.client.post('/deck/1/card', json=data, headers=self.authorization1)
+        self.assertEqual(response.status_code, 404)
+        card = db.session.get(Card, 4)
+        self.assertIsNone(card)
+
+    def test_create_card_deck_deleted(self):
+        self.client.delete('/deck/1', headers=self.authorization1)
+        data = {'front': 'Front of Card', 'back': 'Back of Card'}
+        response = self.client.post('/deck/1/card', json=data, headers=self.authorization1)
+        self.assertEqual(response.status_code, 404)
+        card = db.session.get(Card, 4)
+        self.assertIsNone(card)
+
+    def test_create_card_others_deck(self):
+        data = {'front': 'Front of Card', 'back': 'Back of Card'}
+        response = self.client.post('/deck/3/card', json=data, headers=self.authorization1)
+        self.assertEqual(response.status_code, 403)
+        card = db.session.get(Card, 4)
+        self.assertIsNone(card)
+
+    def test_create_card_no_front(self):
+        data = {'back': 'Back of Card'}
+        response = self.client.post('/deck/1/card', json=data, headers=self.authorization1)
+        self.assertEqual(response.status_code, 400)
+        card = db.session.get(Card, 4)
+        self.assertIsNone(card)
+
+    def test_create_card_no_back(self):
+        data = {'front': 'Front of Card'}
+        response = self.client.post('/deck/1/card', json=data, headers=self.authorization1)
+        self.assertEqual(response.status_code, 400)
+        card = db.session.get(Card, 4)
+        self.assertIsNone(card)
+
+    def test_create_card_reverse(self):
+        data = {'front': 'Front of Card', 'back': 'Back of Card', 'reverse': True}
+        response = self.client.post('/deck/1/card', json=data, headers=self.authorization1)
+        self.assertEqual(response.status_code, 201)
+        card1 = db.session.get(Card, 4)
+        self.assertIsNotNone(card1)
+        self.assertEqual(card1.front, 'Front of Card')
+        self.assertEqual(card1.back, 'Back of Card')
+        card2 = db.session.get(Card, 5)
+        self.assertIsNotNone(card2)
+        self.assertEqual(card2.front, 'Back of Card')
+        self.assertEqual(card2.back, 'Front of Card')
+
+    def test_search_cards(self):
+        response = self.client.get('/deck/3/cards', headers=self.authorization2)
+        data = response.get_json()['data']
+
         self.assertEqual(response.status_code, 200)
-        card_list = response.json
-        self.assertEqual(len(card_list), 0)  # Assuming no cards were created yet
+        self.assertEqual(len(data), 2)
+
+        self.assertEqual(data[0]['front'], 'apfel')
+        self.assertEqual(data[1]['front'], 'frau')
+
+    def test_search_cards_user_deleted(self):
+        self.client.delete('/user', headers=self.authorization2)
+        response = self.client.get('/deck/3/cards', headers=self.authorization2)
+        self.assertEqual(response.status_code, 404)
+
+    def test_search_cards_nonexistent_deck(self):
+        self.client.delete('/user', headers=self.authorization2)
+        response = self.client.get('/deck/4/cards', headers=self.authorization2)
+        self.assertEqual(response.status_code, 404)
+
+    def test_search_cards_shared_deck(self):
+        response = self.client.get('/deck/3/cards', headers=self.authorization1)
+        data = response.get_json()['data']
+
+        self.assertEqual(response.status_code, 200)
+        self.assertEqual(len(data), 2)
+
+    def test_search_cards_locked_deck(self):
+        response = self.client.get('/deck/4/cards', headers=self.authorization1)
+        self.assertEqual(response.status_code, 403)
+
+    def test_search_cards_query(self):
+        response = self.client.get('/deck/3/cards?q=frau', headers=self.authorization2)
+        data = response.get_json()['data']
+
+        self.assertEqual(response.status_code, 200)
+        self.assertEqual(len(data), 1)
+        self.assertEqual(data[0]['front'], 'frau')
+
+    def test_search_cards_limit(self):
+        response = self.client.get('/deck/3/cards?limit=1', headers=self.authorization2)
+        data = response.get_json()['data']
+
+        self.assertEqual(response.status_code, 200)
+        self.assertEqual(len(data), 1)
+        self.assertEqual(data[0]['front'], 'apfel')
+
+    def test_search_cards_limit_offset(self):
+        response = self.client.get('/deck/3/cards?limit=1&offset=1', headers=self.authorization2)
+        data = response.get_json()['data']
+
+        self.assertEqual(response.status_code, 200)
+        self.assertEqual(len(data), 1)
+        self.assertEqual(data[0]['front'], 'frau')
 
     def test_get_card(self):
-        card = Card(front='Front of Card', back='Back of Card', deck=self.deck)
-        db.session.add(card)
-        db.session.commit()
-        response = self.client.get(f'/cards/{card.id}', headers=self.authorization)
+        response = self.client.get('/card/1', headers=self.authorization2)
         self.assertEqual(response.status_code, 200)
-        data = response.json
-        self.assertEqual(data['data']['front'], 'Front of Card')
+        data = response.get_json()['data']
+        self.assertEqual(data['front'], 'apfel')
+
+    def test_get_card_user_deleted(self):
+        self.client.delete('/user', headers=self.authorization2)
+        response = self.client.get('/card/1', headers=self.authorization2)
+        self.assertEqual(response.status_code, 404)
+
+    def test_get_nonexistent_card(self):
+        response = self.client.get('/card/5', headers=self.authorization2)
+        self.assertEqual(response.status_code, 404)
+
+    def test_get_shared_card(self):
+        response = self.client.get('/card/2', headers=self.authorization1)
+        self.assertEqual(response.status_code, 200)
+
+    def test_get_locked_card(self):
+        response = self.client.get('/card/3', headers=self.authorization1)
+        self.assertEqual(response.status_code, 403)
 
     def test_update_card(self):
-        card = Card(front='Front of Card', back='Back of Card', deck=self.deck)
-        db.session.add(card)
-        db.session.commit()
         data = {'front': 'Updated Front', 'back': 'Updated Back'}
-        response = self.client.put(f'/cards/{card.id}', json=data, headers=self.authorization)
+        response = self.client.put(f'/card/1', json=data, headers=self.authorization2)
         self.assertEqual(response.status_code, 200)
-        updated_card = db.session.get(Card, card.id)
-        self.assertEqual(updated_card.front, 'Updated Front')
+        card = db.session.get(Card, 1)
+        self.assertEqual(card.front, 'Updated Front')
+        self.assertEqual(card.back, 'Updated Back')
+
+    def test_update_card_user_deleted(self):
+        self.client.delete('/user', headers=self.authorization2)
+        data = {'front': 'Updated Front', 'back': 'Updated Back'}
+        response = self.client.put(f'/card/1', json=data, headers=self.authorization2)
+        self.assertEqual(response.status_code, 404)
+
+    def test_update_nonexistent_card(self):
+        data = {'front': 'Updated Front', 'back': 'Updated Back'}
+        response = self.client.put(f'/card/5', json=data, headers=self.authorization2)
+        self.assertEqual(response.status_code, 404)
+
+    def test_update_others_card(self):
+        data = {'front': 'Updated Front', 'back': 'Updated Back'}
+        response = self.client.put(f'/card/1', json=data, headers=self.authorization1)
+        self.assertEqual(response.status_code, 403)
 
     def test_delete_card(self):
-        card = Card(front='Front of Card', back='Back of Card', deck=self.deck)
-        db.session.add(card)
-        db.session.commit()
-        response = self.client.delete(f'/cards/{card.id}', headers=self.authorization)
+        response = self.client.delete(f'/card/1', headers=self.authorization2)
         self.assertEqual(response.status_code, 200)
-        deleted_card = db.session.get(Card, card.id)
-        self.assertIsNone(deleted_card)
+        card = db.session.get(Card, 1)
+        self.assertIsNone(card)
+
+    def test_delete_card_user_deleted(self):
+        self.client.delete('/user', headers=self.authorization2)
+        response = self.client.delete(f'/card/1', headers=self.authorization2)
+        self.assertEqual(response.status_code, 404)
+
+    def test_delete_nonexistent_card(self):
+        response = self.client.delete(f'/card/5', headers=self.authorization2)
+        self.assertEqual(response.status_code, 404)
+
+    def test_delete_others_card(self):
+        response = self.client.delete(f'/card/1', headers=self.authorization1)
+        self.assertEqual(response.status_code, 403)
 
 if __name__ == '__main__':
     unittest.main()
