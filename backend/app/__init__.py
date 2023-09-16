@@ -1,0 +1,18 @@
+from flask import Flask
+from flask_migrate import Migrate
+from .extensions import db
+from .routes import user_bp, deck_bp, auth_bp
+
+def create_app(config):
+    app = Flask(__name__)
+    app.config.from_object(config)
+
+    db.init_app(app)
+
+    migrate = Migrate(app, db)
+
+    app.register_blueprint(auth_bp)
+    app.register_blueprint(user_bp)
+    app.register_blueprint(deck_bp)
+
+    return app
