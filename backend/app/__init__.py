@@ -1,7 +1,7 @@
 from flask import Flask
 from flask_migrate import Migrate
 from .extensions import db
-from .routes import user_bp, deck_bp, auth_bp
+from .routes import user_bp, deck_bp, auth_bp, card_bp
 
 def create_app(config):
     app = Flask(__name__)
@@ -14,5 +14,6 @@ def create_app(config):
     app.register_blueprint(auth_bp)
     app.register_blueprint(user_bp)
     app.register_blueprint(deck_bp)
+    app.register_blueprint(card_bp)
 
     return app

@@ -5,7 +5,7 @@ from app.extensions import db
 from app.models import User
 from .config import Config
 
-class UserRoutesTest(unittest.TestCase):
+class TestUserRoutes(unittest.TestCase):
 
     def setUp(self):
         self.app = create_app(Config)

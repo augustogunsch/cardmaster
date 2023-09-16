@@ -38,8 +38,10 @@ def get_deck(jwt_data, deck_id):
     if not deck:
         return jsonify({'message': 'Deck not found'}), 404
 
-    if deck.shared or deck.owner == user:
-        return jsonify({'id': deck.id, 'name': deck.name, 'owner': deck.owner.username}), 200
+    if not deck.shared and deck.owner_id != user.id:
+        return jsonify({'message': 'You do not own this deck'}), 401
+
+    return jsonify({'id': deck.id, 'name': deck.name, 'owner': deck.owner.username}), 200
 
 @deck_bp.route('/decks/<int:deck_id>', methods=['PUT'])
 @token_required
@@ -54,7 +56,7 @@ def update_deck(jwt_data, deck_id):
     if not deck:
         return jsonify({'message': 'Deck not found'}), 404
 
-    if deck.owner != user:
+    if deck.owner_id != user.id:
         return jsonify({'message': 'You do not have permission to update this deck'}), 403
 
     data = request.json
@@ -81,7 +83,7 @@ def delete_deck(jwt_data, deck_id):
     if not deck:
         return jsonify({'message': 'Deck not found'}), 404
 
-    if deck.owner != user:
+    if deck.owner_id != user.id:
         return jsonify({'message': 'You do not have permission to delete this deck'}), 403
 
     db.session.delete(deck)
