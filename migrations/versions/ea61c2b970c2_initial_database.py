@@ -1,7 +1,7 @@
 """Initial database
 
 Revision ID: ea61c2b970c2
-Revises: 
+Revises:
 Create Date: 2023-09-16 21:33:45.783353
 
 """

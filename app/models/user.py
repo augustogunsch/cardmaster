@@ -8,10 +8,12 @@ class User(db.Model):
     password_hash = db.Column(db.String(128), nullable=False)
     decks = db.relationship('Deck', back_populates='user', foreign_keys=[Deck.user_id], cascade='all, delete-orphan')
     decks_created = db.relationship('Deck', back_populates='author', foreign_keys=[Deck.author_id])
+    admin = db.Column(db.Boolean, default=False)
 
-    def __init__(self, username, password):
+    def __init__(self, username, password, admin=False):
         self.username = username
         self.set_password(password)
+        self.admin = admin
 
     def set_password(self, password):
         self.password_hash = generate_password_hash(password)

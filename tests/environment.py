@@ -23,6 +23,7 @@ class TestEnvironment(unittest.TestCase):
 
         self.user1 = self.add(User(username='Alfred', password='testpassword'))
         self.user2 = self.add(User(username='John', password='testpassword'))
+        self.user3 = self.add(User(username='Admin', password='testpassword', admin=True))
 
         self.deck1 = self.add(Deck(name='Javanese', user=self.user1, author=self.user1, shared=True))
         self.deck2 = self.add(Deck(name='Japanese', user=self.user1, author=self.user1, shared=True))
@@ -38,6 +39,9 @@ class TestEnvironment(unittest.TestCase):
 
         auth_response = self.client.post('/auth', json={'username': 'John', 'password': 'testpassword'})
         self.authorization2 = {'Authorization': auth_response.json['token']}
+
+        auth_response = self.client.post('/auth', json={'username': 'Admin', 'password': 'testpassword'})
+        self.authorization3 = {'Authorization': auth_response.json['token']}
 
     def tearDown(self):
         with self.app.app_context():

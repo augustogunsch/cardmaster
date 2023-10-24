@@ -34,14 +34,14 @@ class TestAuthRoutes(TestEnvironment):
     def test_auth_invalid_token(self):
         data = {'front': 'Front of Card', 'back': 'Back of Card'}
         authorization = {'Authorization': 'invalid_token'}
-        response = self.client.post('/deck/1/card', json=data, headers=authorization)
+        response = self.client.post('/decks/1/cards', json=data, headers=authorization)
         self.assertEqual(response.status_code, 401)
         card = db.session.get(Card, 4)
         self.assertIsNone(card)
 
     def test_auth_no_token(self):
         data = {'front': 'Front of Card', 'back': 'Back of Card'}
-        response = self.client.post('/deck/1/card', json=data)
+        response = self.client.post('/decks/1/cards', json=data)
         self.assertEqual(response.status_code, 400)
         card = db.session.get(Card, 4)
         self.assertIsNone(card)
