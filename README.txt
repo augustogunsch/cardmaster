@@ -4,7 +4,6 @@ python -m venv venv
 pip install -r ./requirements.txt
 pre-commit install
 . ./venv/bin/activate
-flask --app run.py db init
 flask --app run.py db upgrade
 flask --app run.py run
 ```

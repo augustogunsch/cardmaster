@@ -7,7 +7,6 @@ class User(db.Model):
     username = db.Column(db.String(80), unique=True, nullable=False)
     password_hash = db.Column(db.String(128), nullable=False)
     decks = db.relationship('Deck', back_populates='user', foreign_keys=[Deck.user_id], cascade='all, delete-orphan')
-    decks_created = db.relationship('Deck', back_populates='author', foreign_keys=[Deck.author_id])
     admin = db.Column(db.Boolean, default=False)
 
     def __init__(self, username, password, admin=False):

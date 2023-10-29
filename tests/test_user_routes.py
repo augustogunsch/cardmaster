@@ -234,13 +234,6 @@ class TestUserRoutes(TestEnvironment):
         deck = db.session.get(Deck, 4)
         self.assertNotEqual(deck, None)
 
-    def test_add_deck_duplicate(self):
-        response = self.client.post('/users/1/decks/1', headers=self.authorization1)
-        self.assertEqual(response.status_code, 400)
-
-        deck = db.session.get(Deck, 5)
-        self.assertIsNone(deck)
-
     def test_add_deck_nonxistent_user(self):
         response = self.client.post('/users/4/decks/1', headers=self.authorization1)
         self.assertEqual(response.status_code, 404)

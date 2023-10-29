@@ -95,6 +95,13 @@ class TestDeckRoutes(TestEnvironment):
         self.assertEqual(data[1]['name'], 'Japanese')
         self.assertEqual(data[2]['name'], 'German')
 
+    def test_search_decks_count(self):
+        response = self.client.get('/decks?count=true')
+        data = response.get_json()['data']
+
+        self.assertEqual(response.status_code, 200)
+        self.assertEqual(data, 3)
+
     def test_search_decks_query(self):
         response = self.client.get('/decks?q=nese')
         data = response.get_json()['data']

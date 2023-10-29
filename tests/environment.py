@@ -25,10 +25,10 @@ class TestEnvironment(unittest.TestCase):
         self.user2 = self.add(User(username='John', password='testpassword'))
         self.user3 = self.add(User(username='Admin', password='testpassword', admin=True))
 
-        self.deck1 = self.add(Deck(name='Javanese', user=self.user1, author=self.user1, shared=True))
-        self.deck2 = self.add(Deck(name='Japanese', user=self.user1, author=self.user1, shared=True))
-        self.deck3 = self.add(Deck(name='German', user=self.user2, author=self.user2, shared=True))
-        self.deck4 = self.add(Deck(name='Polish', user=self.user2, author=self.user2, shared=False))
+        self.deck1 = self.add(Deck(name='Javanese', user=self.user1, shared=True))
+        self.deck2 = self.add(Deck(name='Japanese', user=self.user1, shared=True))
+        self.deck3 = self.add(Deck(name='German', user=self.user2, shared=True))
+        self.deck4 = self.add(Deck(name='Polish', user=self.user2, shared=False))
 
         self.card1 = self.add(Card(front='apfel', back='apple', deck=self.deck3))
         self.card2 = self.add(Card(front='frau', back='woman', deck=self.deck3))

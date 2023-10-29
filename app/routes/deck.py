@@ -19,7 +19,7 @@ def create_deck(jwt_data):
     if not name:
         return jsonify({'message': 'Deck name is required'}), 400
 
-    deck = Deck(name=name, author=user, user=user)
+    deck = Deck(name=name, user=user)
     db.session.add(deck)
     db.session.commit()
 
@@ -86,16 +86,18 @@ def delete_deck(jwt_data, deck_id):
     if deck.user_id != user.id:
         return jsonify({'message': 'You do not own this deck'}), 403
 
+    data = deck.get_json()
     db.session.delete(deck)
     db.session.commit()
 
-    return jsonify({'data': deck.get_json()}), 200
+    return jsonify({'data': data}), 200
 
 @deck_bp.route('/decks', methods=['GET'])
 def search_decks():
     q = request.args.get('q')
     limit = request.args.get('limit')
     offset = request.args.get('offset')
+    count = request.args.get('count')
 
     query = Deck.query.filter(Deck.shared == True)
 
@@ -107,6 +109,9 @@ def search_decks():
 
         if offset:
             query = query.offset(offset)
+
+    if count:
+        return jsonify({'data': query.count()}), 200
 
     decks = query.all()
 

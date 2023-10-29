@@ -7,8 +7,6 @@ class Deck(db.Model):
     shared = db.Column(db.Boolean, default=False)
     user_id = db.Column(db.Integer, db.ForeignKey('user.id', name='fk_deck_user_id'), nullable=False)
     user = db.relationship('User', back_populates='decks', foreign_keys=[user_id])
-    author_id = db.Column(db.Integer, db.ForeignKey('user.id', name='fk_deck_author_id'), nullable=False)
-    author = db.relationship('User', back_populates='decks_created', foreign_keys=[author_id])
     cards = db.relationship('Card', back_populates='deck', foreign_keys=[Card.deck_id], cascade='all, delete-orphan')
 
     def get_json(self):
@@ -16,6 +14,6 @@ class Deck(db.Model):
             'id': self.id,
             'name': self.name,
             'user': self.user.username,
-            'author': self.author.username,
+            'shared': self.shared,
             'cards_count': len(self.cards)
         }

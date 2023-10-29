@@ -143,10 +143,7 @@ def add_deck(jwt_data, user_id, deck_id):
     if not deck:
         return jsonify({'message': 'Deck not found'}), 404
 
-    if deck in user.decks:
-        return jsonify({'message': 'You already have this deck in your collection'}), 400
-
-    new_deck = Deck(name=deck.name, author=deck.author, user=user)
+    new_deck = Deck(name=deck.name, user=user)
     db.session.add(new_deck)
     db.session.commit()
     db.session.refresh(new_deck)
@@ -154,7 +151,7 @@ def add_deck(jwt_data, user_id, deck_id):
     db.session.add_all(Card(front=card.front, back=card.back, deck=new_deck) for card in deck.cards)
     db.session.commit()
 
-    return jsonify({'data': deck.get_json()}), 201
+    return jsonify({'data': new_deck.get_json()}), 201
 
 @user_bp.route('/users/<int:user_id>/decks', methods=['GET'])
 @token_required

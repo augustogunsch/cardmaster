@@ -12,7 +12,7 @@ def auth():
     password = data.get('password')
 
     if not username or not password:
-        return jsonify({'message': 'Please provide username and password'}), 400
+        return jsonify({'message': 'Username and password are required'}), 400
 
     user = User.query.filter(User.username == username).first()
 
@@ -22,6 +22,6 @@ def auth():
     if user.check_password(password):
         payload = { 'user_id': user.id }
         token = jwt.encode(payload, current_app.config['SECRET_KEY'], algorithm='HS256')
-        return jsonify({'token': token.decode('utf-8')})
+        return jsonify({'token': token.decode('utf-8'), 'user': user.get_json()})
     else:
         return jsonify({'message': 'Authentication failed'}), 401

@@ -2,7 +2,7 @@ import unittest
 import json
 from flask import Flask
 from app.extensions import db
-from app.models import Card
+from app.models import Card, Deck
 from .environment import TestEnvironment
 
 class TestCardRoutes(TestEnvironment):
