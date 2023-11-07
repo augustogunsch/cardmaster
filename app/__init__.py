@@ -1,3 +1,4 @@
+import os
 from dotenv import load_dotenv
 from flask import Flask
 from flask_migrate import Migrate
@@ -6,6 +7,13 @@ from .extensions import db
 from .routes import user_bp, deck_bp, auth_bp, card_bp
 
 load_dotenv()
+
+uri = os.getenv('DATABASE_URL')
+
+if uri.startswith('postgres://'): # pragma: no cover
+    uri = uri.replace('postgres://', 'postgresql://', 1)
+
+os.environ['FLASK_SQLALCHEMY_DATABASE_URI'] = uri
 
 def create_app():
     app = Flask(__name__)
