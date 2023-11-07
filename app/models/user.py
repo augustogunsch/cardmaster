@@ -8,6 +8,7 @@ class User(db.Model):
     password_hash = db.Column(db.String(128), nullable=False)
     decks = db.relationship('Deck', back_populates='user', foreign_keys=[Deck.user_id], cascade='all, delete-orphan')
     admin = db.Column(db.Boolean, default=False)
+    tzutcdelta = db.Column(db.Integer, default=0) # used internally for calculating dates
 
     def __init__(self, username, password, admin=False):
         self.username = username

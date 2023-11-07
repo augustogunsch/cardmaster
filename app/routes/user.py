@@ -1,3 +1,5 @@
+from datetime import datetime
+from numbers import Integral
 from flask import Blueprint, request, jsonify
 from ..models import User, Card, Deck
 from ..extensions import db
@@ -172,6 +174,10 @@ def search_user_decks(jwt_data, user_id):
     q = request.args.get('q')
     limit = request.args.get('limit')
     offset = request.args.get('offset')
+    card_count = request.args.get('card_count')
+
+    if card_count != None:
+        card_count = card_count.split(',')
 
     query = Deck.query.filter(Deck.user_id == user.id)
 
@@ -186,5 +192,5 @@ def search_user_decks(jwt_data, user_id):
 
     decks = query.all()
 
-    data = [deck.get_json() for deck in decks]
+    data = [deck.get_json(card_count) for deck in decks]
     return jsonify({'data': data}), 200

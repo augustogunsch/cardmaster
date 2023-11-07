@@ -25,7 +25,13 @@ class TestDeckRoutes(TestEnvironment):
     def test_get_deck(self):
         response = self.client.get(f'/decks/1', headers=self.authorization1)
         self.assertEqual(response.status_code, 200)
-        data = response.json
+        data = response.get_json()['data']
+        self.assertEqual(data['name'], 'Javanese')
+
+    def test_get_deck_card_count(self):
+        response = self.client.get(f'/decks/1?card_count=all,due,new', headers=self.authorization1)
+        self.assertEqual(response.status_code, 200)
+        data = response.get_json()['data']
         self.assertEqual(data['name'], 'Javanese')
 
     def test_get_deck_user_deleted(self):
@@ -95,9 +101,29 @@ class TestDeckRoutes(TestEnvironment):
         self.assertEqual(data[1]['name'], 'Japanese')
         self.assertEqual(data[2]['name'], 'German')
 
-    def test_search_decks_count(self):
-        response = self.client.get('/decks?count=true')
+    def test_search_decks_count_cards(self):
+        response = self.client.get('/decks?card_count=all,new,due')
         data = response.get_json()['data']
+
+        self.assertEqual(response.status_code, 200)
+        self.assertEqual(len(data), 3)
+
+        self.assertEqual(data[0]['name'], 'Javanese')
+        self.assertEqual(data[0]['new_count'], 0)
+        self.assertEqual(data[0]['due_count'], 0)
+        self.assertEqual(data[0]['all_count'], 0)
+        self.assertEqual(data[1]['name'], 'Japanese')
+        self.assertEqual(data[1]['new_count'], 0)
+        self.assertEqual(data[1]['due_count'], 0)
+        self.assertEqual(data[1]['all_count'], 0)
+        self.assertEqual(data[2]['name'], 'German')
+        self.assertEqual(data[2]['new_count'], 1)
+        self.assertEqual(data[2]['due_count'], 1)
+        self.assertEqual(data[2]['all_count'], 2)
+
+    def test_search_decks_count(self):
+        response = self.client.get('/decks?total_count')
+        data = response.get_json()['count']
 
         self.assertEqual(response.status_code, 200)
         self.assertEqual(data, 3)

@@ -1,3 +1,4 @@
+from datetime import datetime
 from flask import Blueprint, request, jsonify, current_app
 from ..models import Deck, User
 from ..extensions import db
@@ -41,7 +42,14 @@ def get_deck(jwt_data, deck_id):
     if not deck.shared and deck.user_id != user.id:
         return jsonify({'message': 'You do not own this deck'}), 403
 
-    return jsonify(deck.get_json()), 200
+    card_count = request.args.get('card_count')
+
+    if card_count != None:
+        card_count = card_count.split(',')
+
+    return jsonify({
+        'data': deck.get_json(card_count, tzutcdelta=user.tzutcdelta)
+    }), 200
 
 @deck_bp.route('/decks/<int:deck_id>', methods=['PUT'])
 @token_required
@@ -97,12 +105,19 @@ def search_decks():
     q = request.args.get('q')
     limit = request.args.get('limit')
     offset = request.args.get('offset')
-    count = request.args.get('count')
+    total_count = request.args.get('total_count') != None
+    card_count = request.args.get('card_count')
+
+    if card_count != None:
+        card_count = card_count.split(',')
 
     query = Deck.query.filter(Deck.shared == True)
 
     if q:
         query = query.filter(Deck.name.ilike(f'%{q}%'))
+
+    if total_count:
+        total_count = query.count()
 
     if limit:
         query = query.limit(limit)
@@ -110,10 +125,13 @@ def search_decks():
         if offset:
             query = query.offset(offset)
 
-    if count:
-        return jsonify({'data': query.count()}), 200
-
     decks = query.all()
 
-    deck_list = [deck.get_json() for deck in decks]
-    return jsonify({'data': deck_list}), 200
+    deck_list = [deck.get_json(card_count) for deck in decks]
+
+    data = {'data': deck_list}
+
+    if total_count:
+        data['count'] = total_count
+
+    return jsonify(data), 200

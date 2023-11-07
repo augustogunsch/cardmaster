@@ -265,10 +265,29 @@ class TestUserRoutes(TestEnvironment):
 
     def test_search_user_decks(self):
         response = self.client.get('/users/1/decks', headers=self.authorization1)
-        data = response.get_json()['data']
-
         self.assertEqual(response.status_code, 200)
+
+        data = response.get_json()['data']
         self.assertEqual(len(data), 2)
+
+        self.assertEqual(data[0]['name'], 'Javanese')
+        self.assertEqual(data[1]['name'], 'Japanese')
+
+    def test_search_user_decks_count_cards(self):
+        response = self.client.get('/users/1/decks?card_count=all,new,due', headers=self.authorization1)
+        self.assertEqual(response.status_code, 200)
+
+        data = response.get_json()['data']
+        self.assertEqual(len(data), 2)
+
+        self.assertEqual(data[0]['name'], 'Javanese')
+        self.assertEqual(data[0]['new_count'], 0)
+        self.assertEqual(data[0]['due_count'], 0)
+        self.assertEqual(data[0]['all_count'], 0)
+        self.assertEqual(data[1]['name'], 'Japanese')
+        self.assertEqual(data[1]['new_count'], 0)
+        self.assertEqual(data[1]['due_count'], 0)
+        self.assertEqual(data[1]['all_count'], 0)
 
     def test_search_user_decks_query(self):
         response = self.client.get('/users/1/decks?q=Jav', headers=self.authorization1)
