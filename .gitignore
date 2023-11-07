@@ -3,4 +3,4 @@ venv/
 instance/
 htmlcov/
 .coverage
-config.py
+.env

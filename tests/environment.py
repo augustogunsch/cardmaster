@@ -1,9 +1,9 @@
 import unittest
+import os
 from datetime import datetime, timedelta
 from app import create_app
 from app.extensions import db
 from app.models import User, Deck, Card
-from .config import Config
 
 class TestEnvironment(unittest.TestCase):
 
@@ -14,7 +14,12 @@ class TestEnvironment(unittest.TestCase):
         return obj
 
     def setUp(self):
-        self.app = create_app(Config)
+        os.environ['FLASK_DEBUG'] = '1'
+        os.environ['FLASK_TESTING'] = '1'
+        os.environ['FLASK_SQLALCHEMY_DATABASE_URI'] = 'sqlite:///:memory:'
+        os.environ['FLASK_SECRET_KEY'] = 'wajdlkawjdklawdn293io2njkWDANJKdlkdhawjkhdn%@AD!!@#!@$@'
+
+        self.app = create_app()
         self.client = self.app.test_client()
 
         self.app_context = self.app.app_context()

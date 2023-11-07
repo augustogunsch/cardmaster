@@ -1,13 +1,15 @@
+from dotenv import load_dotenv
 from flask import Flask
 from flask_migrate import Migrate
 from flask_cors import CORS
 from .extensions import db
 from .routes import user_bp, deck_bp, auth_bp, card_bp
-from .config import Config
 
-def create_app(config=Config):
+load_dotenv()
+
+def create_app():
     app = Flask(__name__)
-    app.config.from_object(config)
+    app.config.from_prefixed_env()
 
     db.init_app(app)
 
