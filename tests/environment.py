@@ -5,6 +5,7 @@ from app import create_app
 from app.extensions import db
 from app.models import User, Deck, Card
 
+
 class TestEnvironment(unittest.TestCase):
 
     def add(self, obj):

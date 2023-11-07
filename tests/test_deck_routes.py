@@ -5,21 +5,25 @@ from app.extensions import db
 from app.models import Deck
 from .environment import TestEnvironment
 
+
 class TestDeckRoutes(TestEnvironment):
 
     def test_create_deck(self):
         data = {'name': 'New Deck'}
-        response = self.client.post('/decks', json=data, headers=self.authorization1)
+        response = self.client.post(
+            '/decks', json=data, headers=self.authorization1)
         self.assertEqual(response.status_code, 201)
 
     def test_create_deck_user_deleted(self):
         self.client.delete('/users/1', headers=self.authorization1)
         data = {'name': 'New Deck'}
-        response = self.client.post('/decks', json=data, headers=self.authorization1)
+        response = self.client.post(
+            '/decks', json=data, headers=self.authorization1)
         self.assertEqual(response.status_code, 404)
 
     def test_create_deck_no_name(self):
-        response = self.client.post('/decks', json={}, headers=self.authorization1)
+        response = self.client.post(
+            '/decks', json={}, headers=self.authorization1)
         self.assertEqual(response.status_code, 400)
 
     def test_get_deck(self):
@@ -29,7 +33,8 @@ class TestDeckRoutes(TestEnvironment):
         self.assertEqual(data['name'], 'Javanese')
 
     def test_get_deck_card_count(self):
-        response = self.client.get(f'/decks/1?card_count=all,due,new', headers=self.authorization1)
+        response = self.client.get(
+            f'/decks/1?card_count=all,due,new', headers=self.authorization1)
         self.assertEqual(response.status_code, 200)
         data = response.get_json()['data']
         self.assertEqual(data['name'], 'Javanese')
@@ -49,7 +54,8 @@ class TestDeckRoutes(TestEnvironment):
 
     def test_update_deck(self):
         data = {'name': 'Updated Deck', 'shared': False}
-        response = self.client.put(f'/decks/1', json=data, headers=self.authorization1)
+        response = self.client.put(
+            f'/decks/1', json=data, headers=self.authorization1)
         self.assertEqual(response.status_code, 200)
         updated_deck = db.session.get(Deck, 1)
         self.assertEqual(updated_deck.name, 'Updated Deck')
@@ -58,17 +64,20 @@ class TestDeckRoutes(TestEnvironment):
     def test_update_deck_user_deleted(self):
         self.client.delete('/users/1', headers=self.authorization1)
         data = {'name': 'Updated Deck'}
-        response = self.client.put(f'/decks/1', json=data, headers=self.authorization1)
+        response = self.client.put(
+            f'/decks/1', json=data, headers=self.authorization1)
         self.assertEqual(response.status_code, 404)
 
     def test_update_nonexistent_deck(self):
         data = {'name': 'Updated Deck'}
-        response = self.client.put(f'/decks/5', json=data, headers=self.authorization1)
+        response = self.client.put(
+            f'/decks/5', json=data, headers=self.authorization1)
         self.assertEqual(response.status_code, 404)
 
     def test_update_others_deck(self):
         data = {'name': 'Updated Deck'}
-        response = self.client.put(f'/decks/3', json=data, headers=self.authorization1)
+        response = self.client.put(
+            f'/decks/3', json=data, headers=self.authorization1)
         self.assertEqual(response.status_code, 403)
 
     def test_delete_deck(self):
@@ -155,6 +164,7 @@ class TestDeckRoutes(TestEnvironment):
         self.assertEqual(len(data), 1)
 
         self.assertEqual(data[0]['name'], 'Japanese')
+
 
 if __name__ == '__main__':
     unittest.main()

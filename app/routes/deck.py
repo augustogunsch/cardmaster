@@ -6,6 +6,7 @@ from ..util.auth import token_required
 
 deck_bp = Blueprint('deck', __name__)
 
+
 @deck_bp.route('/decks', methods=['POST'])
 @token_required
 def create_deck(jwt_data):
@@ -25,6 +26,7 @@ def create_deck(jwt_data):
     db.session.commit()
 
     return jsonify({'data': deck.get_json()}), 201
+
 
 @deck_bp.route('/decks/<int:deck_id>', methods=['GET'])
 @token_required
@@ -50,6 +52,7 @@ def get_deck(jwt_data, deck_id):
     return jsonify({
         'data': deck.get_json(card_count, tzutcdelta=user.tzutcdelta)
     }), 200
+
 
 @deck_bp.route('/decks/<int:deck_id>', methods=['PUT'])
 @token_required
@@ -78,6 +81,7 @@ def update_deck(jwt_data, deck_id):
 
     return jsonify({'data': deck.get_json()}), 200
 
+
 @deck_bp.route('/decks/<int:deck_id>', methods=['DELETE'])
 @token_required
 def delete_deck(jwt_data, deck_id):
@@ -99,6 +103,7 @@ def delete_deck(jwt_data, deck_id):
     db.session.commit()
 
     return jsonify({'data': data}), 200
+
 
 @deck_bp.route('/decks', methods=['GET'])
 def search_decks():

@@ -10,10 +10,12 @@ load_dotenv()
 
 uri = os.getenv('DATABASE_URL')
 
-if uri.startswith('postgres://'): # pragma: no cover
-    uri = uri.replace('postgres://', 'postgresql://', 1)
+if uri is not None:
+    if uri.startswith('postgres://'):  # pragma: no cover
+        uri = uri.replace('postgres://', 'postgresql://', 1)
 
-os.environ['FLASK_SQLALCHEMY_DATABASE_URI'] = uri
+    os.environ['FLASK_SQLALCHEMY_DATABASE_URI'] = uri
+
 
 def create_app():
     app = Flask(__name__)

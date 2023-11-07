@@ -2,13 +2,16 @@ from ..extensions import db
 from .deck import Deck
 from werkzeug.security import generate_password_hash, check_password_hash
 
+
 class User(db.Model):
     id = db.Column(db.Integer, primary_key=True)
     username = db.Column(db.String(80), unique=True, nullable=False)
     password_hash = db.Column(db.String(128), nullable=False)
-    decks = db.relationship('Deck', back_populates='user', foreign_keys=[Deck.user_id], cascade='all, delete-orphan')
+    decks = db.relationship('Deck', back_populates='user', foreign_keys=[
+                            Deck.user_id], cascade='all, delete-orphan')
     admin = db.Column(db.Boolean, default=False)
-    tzutcdelta = db.Column(db.Integer, default=0) # used internally for calculating dates
+    # used internally for calculating dates
+    tzutcdelta = db.Column(db.Integer, default=0)
 
     def __init__(self, username, password, admin=False):
         self.username = username

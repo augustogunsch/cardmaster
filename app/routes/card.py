@@ -7,6 +7,7 @@ from ..util import date
 
 card_bp = Blueprint('card', __name__)
 
+
 @card_bp.route('/decks/<int:deck_id>/cards', methods=['POST'])
 @token_required
 def create_card(jwt_data, deck_id):
@@ -43,6 +44,7 @@ def create_card(jwt_data, deck_id):
         data.append(reverse_card.get_json())
 
     return jsonify({'message': 'Cards created successfully', 'data': data}), 201
+
 
 @card_bp.route('/decks/<int:deck_id>/cards', methods=['GET'])
 @token_required
@@ -105,6 +107,7 @@ def search_cards(jwt_data, deck_id):
     card_list = [card.get_json() for card in cards]
     return jsonify({'data': card_list}), 200
 
+
 @card_bp.route('/cards/<int:card_id>', methods=['GET'])
 @token_required
 def get_card(jwt_data, card_id):
@@ -122,6 +125,7 @@ def get_card(jwt_data, card_id):
         return jsonify({'message': 'You do not have the deck to which this card pertains'}), 403
 
     return jsonify({'data': card.get_json()}), 200
+
 
 @card_bp.route('/cards/<int:card_id>', methods=['PUT'])
 @token_required
@@ -148,13 +152,15 @@ def update_card(jwt_data, card_id):
 
     if last_revised != None:
         try:
-            card.last_revised = date.normalize(datetime.fromisoformat(last_revised))
+            card.last_revised = date.normalize(
+                datetime.fromisoformat(last_revised))
         except:
             return jsonify({'message': 'Field "last_revised" must be an isoformat date'}), 400
 
     if revision_due != None:
         try:
-            card.revision_due = date.normalize(datetime.fromisoformat(revision_due))
+            card.revision_due = date.normalize(
+                datetime.fromisoformat(revision_due))
         except:
             return jsonify({'message': 'Field "revision_due" must be an isoformat date'}), 400
 
@@ -170,6 +176,7 @@ def update_card(jwt_data, card_id):
     db.session.commit()
 
     return jsonify({'message': 'Card updated successfully', 'data': card.get_json()}), 200
+
 
 @card_bp.route('/cards', methods=['PUT'])
 @token_required
@@ -206,13 +213,15 @@ def update_cards(jwt_data):
 
         if last_revised != None:
             try:
-                card.last_revised = date.normalize(datetime.fromisoformat(last_revised))
+                card.last_revised = date.normalize(
+                    datetime.fromisoformat(last_revised))
             except:
                 return jsonify({'message': 'Field "last_revised" must be an isoformat date'}), 400
 
         if revision_due != None:
             try:
-                card.revision_due = date.normalize(datetime.fromisoformat(revision_due))
+                card.revision_due = date.normalize(
+                    datetime.fromisoformat(revision_due))
             except:
                 return jsonify({'message': 'Field "revision_due" must be an isoformat date'}), 400
 
@@ -228,6 +237,7 @@ def update_cards(jwt_data):
     db.session.commit()
 
     return jsonify({'message': 'Cards updated successfully'}), 200
+
 
 @card_bp.route('/cards/<int:card_id>', methods=['DELETE'])
 @token_required

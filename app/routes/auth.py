@@ -5,6 +5,7 @@ from ..extensions import db
 
 auth_bp = Blueprint('auth', __name__)
 
+
 @auth_bp.route('/auth', methods=['POST'])
 def auth():
     data = request.get_json()
@@ -34,8 +35,9 @@ def auth():
     if user.check_password(password):
         user.tzutcdelta = tzutcdelta
         db.session.commit()
-        payload = { 'user_id': user.id }
-        token = jwt.encode(payload, current_app.config['SECRET_KEY'], algorithm='HS256')
+        payload = {'user_id': user.id}
+        token = jwt.encode(
+            payload, current_app.config['SECRET_KEY'], algorithm='HS256')
         return jsonify({'token': token.decode('utf-8'), 'user': user.get_json()})
     else:
         return jsonify({'message': 'Authentication failed'}), 401
