@@ -3,8 +3,9 @@ from flask_migrate import Migrate
 from flask_cors import CORS
 from .extensions import db
 from .routes import user_bp, deck_bp, auth_bp, card_bp
+from .config import Config
 
-def create_app(config):
+def create_app(config=Config):
     app = Flask(__name__)
     app.config.from_object(config)
 

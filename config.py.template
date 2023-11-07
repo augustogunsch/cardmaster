@@ -1,4 +1,5 @@
-class Config:
+class Config: # pragma: no cover
     DEBUG = True
     SQLALCHEMY_DATABASE_URI = 'sqlite:///cardmaster.db'
+    # Replace with your secret key
     SECRET_KEY = 'wajdlkawjdklawdn293io2njkWDANJKdlkdhawjkhdn%@AD!!@#!@$@'
