@@ -27,7 +27,10 @@ const ElementList = <T extends object>({
   elementMapper,
   children
 }: IElementListProps<T>): React.JSX.Element => {
-  if (elements.entity !== null || Boolean(children)) {
+  if ((elements.entity !== null &&
+       elements.entity.length > 0) ||
+       Boolean(children)
+  ) {
     return (
       <>
         {children}

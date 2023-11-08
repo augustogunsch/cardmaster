@@ -82,21 +82,21 @@ class TestEnvironment(unittest.TestCase):
             deck=self.deck4
         ))
 
-        auth_response = self.client.post('/auth', json={
+        auth_response = self.client.post('/api/auth', json={
             'username': 'Alfred',
             'password': 'testpassword',
             'tzutcdelta': 0
         })
         self.authorization1 = {'Authorization': auth_response.json['token']}
 
-        auth_response = self.client.post('/auth', json={
+        auth_response = self.client.post('/api/auth', json={
             'username': 'John',
             'password': 'testpassword',
             'tzutcdelta': 0
         })
         self.authorization2 = {'Authorization': auth_response.json['token']}
 
-        auth_response = self.client.post('/auth', json={
+        auth_response = self.client.post('/api/auth', json={
             'username': 'Admin',
             'password': 'testpassword',
             'tzutcdelta': 0

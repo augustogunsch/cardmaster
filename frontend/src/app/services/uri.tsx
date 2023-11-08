@@ -1,4 +1,4 @@
-export const decksUri = '/decks';
-export const cardsUri = '/cards';
-export const usersUri = '/users';
-export const authUri = '/auth';
+export const decksUri = '/api/decks';
+export const cardsUri = '/api/cards';
+export const usersUri = '/api/users';
+export const authUri = '/api/auth';

@@ -8,7 +8,7 @@ from ..util import date
 card_bp = Blueprint('card', __name__)
 
 
-@card_bp.route('/decks/<int:deck_id>/cards', methods=['POST'])
+@card_bp.route('/api/decks/<int:deck_id>/cards', methods=['POST'])
 @token_required
 def create_card(jwt_data, deck_id):
     user = db.session.get(User, jwt_data['user_id'])
@@ -46,7 +46,7 @@ def create_card(jwt_data, deck_id):
     return jsonify({'message': 'Cards created successfully', 'data': data}), 201
 
 
-@card_bp.route('/decks/<int:deck_id>/cards', methods=['GET'])
+@card_bp.route('/api/decks/<int:deck_id>/cards', methods=['GET'])
 @token_required
 def search_cards(jwt_data, deck_id):
     user = db.session.get(User, jwt_data['user_id'])
@@ -118,7 +118,7 @@ def search_cards(jwt_data, deck_id):
     return jsonify({'data': card_list}), 200
 
 
-@card_bp.route('/cards/<int:card_id>', methods=['GET'])
+@card_bp.route('/api/cards/<int:card_id>', methods=['GET'])
 @token_required
 def get_card(jwt_data, card_id):
     user = db.session.get(User, jwt_data['user_id'])
@@ -137,7 +137,7 @@ def get_card(jwt_data, card_id):
     return jsonify({'data': card.get_json()}), 200
 
 
-@card_bp.route('/cards/<int:card_id>', methods=['PUT'])
+@card_bp.route('/api/cards/<int:card_id>', methods=['PUT'])
 @token_required
 def update_card(jwt_data, card_id):
     user = db.session.get(User, jwt_data['user_id'])
@@ -188,7 +188,7 @@ def update_card(jwt_data, card_id):
     return jsonify({'message': 'Card updated successfully', 'data': card.get_json()}), 200
 
 
-@card_bp.route('/cards', methods=['PUT'])
+@card_bp.route('/api/cards', methods=['PUT'])
 @token_required
 def update_cards(jwt_data):
     user = db.session.get(User, jwt_data['user_id'])
@@ -249,7 +249,7 @@ def update_cards(jwt_data):
     return jsonify({'message': 'Cards updated successfully'}), 200
 
 
-@card_bp.route('/cards/<int:card_id>', methods=['DELETE'])
+@card_bp.route('/api/cards/<int:card_id>', methods=['DELETE'])
 @token_required
 def delete_card(jwt_data, card_id):
     user = db.session.get(User, jwt_data['user_id'])

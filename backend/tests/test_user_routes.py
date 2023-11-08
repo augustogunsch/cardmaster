@@ -11,21 +11,21 @@ class TestUserRoutes(TestEnvironment):
 
     def test_create_user(self):
         response = self.client.post(
-            '/users', json={'username': 'testuser2', 'password': 'testpassword'})
+            '/api/users', json={'username': 'testuser2', 'password': 'testpassword'})
         data = response.get_json()
 
         self.assertEqual(response.status_code, 201)
 
     def test_create_user_no_username(self):
         response = self.client.post(
-            '/users', json={'password': 'testpassword'})
+            '/api/users', json={'password': 'testpassword'})
         data = response.get_json()
 
         self.assertEqual(response.status_code, 400)
         self.assertEqual(data['message'], 'Username and password are required')
 
     def test_create_user_no_password(self):
-        response = self.client.post('/users', json={'username': 'testuser2'})
+        response = self.client.post('/api/users', json={'username': 'testuser2'})
         data = response.get_json()
 
         self.assertEqual(response.status_code, 400)
@@ -33,20 +33,20 @@ class TestUserRoutes(TestEnvironment):
 
     def test_create_duplicate_user(self):
         response = self.client.post(
-            '/users', json={'username': 'John', 'password': 'testpassword'})
+            '/api/users', json={'username': 'John', 'password': 'testpassword'})
         data = response.get_json()
 
         self.assertEqual(response.status_code, 400)
         self.assertEqual(data['message'], 'Username already exists')
 
     def test_get_user(self):
-        response = self.client.get('/users/1')
+        response = self.client.get('/api/users/1')
         data = response.get_json()
 
         self.assertEqual(response.status_code, 200)
 
     def test_get_nonexistent_user(self):
-        response = self.client.get('/users/4')
+        response = self.client.get('/api/users/4')
         data = response.get_json()
 
         self.assertEqual(response.status_code, 404)
@@ -63,7 +63,7 @@ class TestUserRoutes(TestEnvironment):
             db.session.add(user3)
             db.session.commit()
 
-        response = self.client.get('/users')
+        response = self.client.get('/api/users')
         data = response.get_json()['data']
 
         self.assertEqual(response.status_code, 200)
@@ -85,7 +85,7 @@ class TestUserRoutes(TestEnvironment):
             db.session.add(user2)
             db.session.commit()
 
-        response = self.client.get('/users?q=test_user')
+        response = self.client.get('/api/users?q=test_user')
         data = response.get_json()['data']
 
         self.assertEqual(response.status_code, 200)
@@ -103,7 +103,7 @@ class TestUserRoutes(TestEnvironment):
             db.session.add(user2)
             db.session.commit()
 
-        response = self.client.get('/users?q=test_user&limit=1')
+        response = self.client.get('/api/users?q=test_user&limit=1')
         data = response.get_json()['data']
 
         self.assertEqual(response.status_code, 200)
@@ -120,7 +120,7 @@ class TestUserRoutes(TestEnvironment):
             db.session.add(user2)
             db.session.commit()
 
-        response = self.client.get('/users?q=test_user&limit=notnumber')
+        response = self.client.get('/api/users?q=test_user&limit=notnumber')
         self.assertEqual(response.status_code, 400)
 
     def test_search_users_query_limit_offset(self):
@@ -132,7 +132,7 @@ class TestUserRoutes(TestEnvironment):
             db.session.add(user2)
             db.session.commit()
 
-        response = self.client.get('/users?q=test_user&limit=1&offset=1')
+        response = self.client.get('/api/users?q=test_user&limit=1&offset=1')
         data = response.get_json()['data']
 
         self.assertEqual(response.status_code, 200)
@@ -149,7 +149,7 @@ class TestUserRoutes(TestEnvironment):
             db.session.add(user2)
             db.session.commit()
 
-        response = self.client.get('/users?q=test_user&limit=1&offset=invalid')
+        response = self.client.get('/api/users?q=test_user&limit=1&offset=invalid')
         self.assertEqual(response.status_code, 400)
 
     def test_update_user(self):
@@ -159,7 +159,7 @@ class TestUserRoutes(TestEnvironment):
             'password': 'newpassword'
         }
         response = self.client.put(
-            '/users/1', json=request_data, headers=self.authorization1)
+            '/api/users/1', json=request_data, headers=self.authorization1)
         data = response.get_json()
 
         self.assertEqual(response.status_code, 200)
@@ -169,7 +169,7 @@ class TestUserRoutes(TestEnvironment):
 
     def test_update_admin_user(self):
         response = self.client.put(
-            '/users/1', json={'admin': True}, headers=self.authorization3)
+            '/api/users/1', json={'admin': True}, headers=self.authorization3)
         data = response.get_json()
 
         self.assertEqual(response.status_code, 200)
@@ -178,30 +178,30 @@ class TestUserRoutes(TestEnvironment):
         self.assertEqual(user.admin, True)
 
     def test_update_deleted_request_user(self):
-        self.client.delete('/users/3', headers=self.authorization3)
+        self.client.delete('/api/users/3', headers=self.authorization3)
         response = self.client.put(
-            '/users/1', json={'username': 'updateduser'}, headers=self.authorization3)
+            '/api/users/1', json={'username': 'updateduser'}, headers=self.authorization3)
         data = response.get_json()
 
         self.assertEqual(response.status_code, 404)
 
     def test_update_unauthorized_request_user(self):
         response = self.client.put(
-            '/users/1', json={'username': 'updateduser'}, headers=self.authorization2)
+            '/api/users/1', json={'username': 'updateduser'}, headers=self.authorization2)
         data = response.get_json()
 
         self.assertEqual(response.status_code, 403)
 
     def test_update_admin_unauthorized_request_user(self):
         response = self.client.put(
-            '/users/1', json={'admin': True}, headers=self.authorization1)
+            '/api/users/1', json={'admin': True}, headers=self.authorization1)
         data = response.get_json()
 
         self.assertEqual(response.status_code, 403)
 
     def test_update_nonexistent_user(self):
         response = self.client.put(
-            '/users/4', json={'username': 'updateduser'}, headers=self.authorization1)
+            '/api/users/4', json={'username': 'updateduser'}, headers=self.authorization1)
         data = response.get_json()
 
         self.assertEqual(response.status_code, 404)
@@ -212,7 +212,7 @@ class TestUserRoutes(TestEnvironment):
             'password': 'newpassword'
         }
         response = self.client.put(
-            '/users/1', json=request_data, headers=self.authorization1)
+            '/api/users/1', json=request_data, headers=self.authorization1)
         data = response.get_json()
 
         self.assertEqual(response.status_code, 400)
@@ -224,14 +224,14 @@ class TestUserRoutes(TestEnvironment):
             'password': 'newpassword'
         }
         response = self.client.put(
-            '/users/1', json=request_data, headers=self.authorization1)
+            '/api/users/1', json=request_data, headers=self.authorization1)
         data = response.get_json()
 
         self.assertEqual(response.status_code, 401)
 
     def test_delete_user(self):
-        response = self.client.delete('/users/1', headers=self.authorization1)
-        response = self.client.delete('/users/2', headers=self.authorization2)
+        response = self.client.delete('/api/users/1', headers=self.authorization1)
+        response = self.client.delete('/api/users/2', headers=self.authorization2)
         data = response.get_json()
 
         user = db.session.get(User, 1)
@@ -245,27 +245,27 @@ class TestUserRoutes(TestEnvironment):
         self.assertEqual(response.status_code, 200)
 
     def test_delete_nonxistent_user(self):
-        response = self.client.delete('/users/4', headers=self.authorization1)
+        response = self.client.delete('/api/users/4', headers=self.authorization1)
         data = response.get_json()
 
         self.assertEqual(response.status_code, 404)
 
     def test_delete_nonxistent_request_user(self):
-        self.client.delete('/users/3', headers=self.authorization3)
-        response = self.client.delete('/users/1', headers=self.authorization3)
+        self.client.delete('/api/users/3', headers=self.authorization3)
+        response = self.client.delete('/api/users/1', headers=self.authorization3)
         data = response.get_json()
 
         self.assertEqual(response.status_code, 404)
 
     def test_delete_unauthorized_request_user(self):
-        response = self.client.delete('/users/1', headers=self.authorization2)
+        response = self.client.delete('/api/users/1', headers=self.authorization2)
         data = response.get_json()
 
         self.assertEqual(response.status_code, 403)
 
     def test_add_deck(self):
         response = self.client.post(
-            '/users/1/decks/3', headers=self.authorization1)
+            '/api/users/1/decks/3', headers=self.authorization1)
         self.assertEqual(response.status_code, 201)
 
         deck = db.session.get(Deck, 4)
@@ -273,16 +273,16 @@ class TestUserRoutes(TestEnvironment):
 
     def test_add_deck_nonxistent_user(self):
         response = self.client.post(
-            '/users/4/decks/1', headers=self.authorization1)
+            '/api/users/4/decks/1', headers=self.authorization1)
         self.assertEqual(response.status_code, 404)
 
         deck = db.session.get(Deck, 5)
         self.assertIsNone(deck)
 
     def test_add_deck_nonxistent_request_user(self):
-        self.client.delete('/users/3', headers=self.authorization3)
+        self.client.delete('/api/users/3', headers=self.authorization3)
         response = self.client.post(
-            '/users/1/decks/1', headers=self.authorization3)
+            '/api/users/1/decks/1', headers=self.authorization3)
         self.assertEqual(response.status_code, 404)
 
         deck = db.session.get(Deck, 5)
@@ -290,7 +290,7 @@ class TestUserRoutes(TestEnvironment):
 
     def test_add_deck_unauthorized_request_user(self):
         response = self.client.post(
-            '/users/1/decks/1', headers=self.authorization2)
+            '/api/users/1/decks/1', headers=self.authorization2)
         self.assertEqual(response.status_code, 403)
 
         deck = db.session.get(Deck, 5)
@@ -298,7 +298,7 @@ class TestUserRoutes(TestEnvironment):
 
     def test_add_nonexistent_deck(self):
         response = self.client.post(
-            '/users/1/decks/10', headers=self.authorization1)
+            '/api/users/1/decks/10', headers=self.authorization1)
         self.assertEqual(response.status_code, 404)
 
         deck = db.session.get(Deck, 5)
@@ -306,7 +306,7 @@ class TestUserRoutes(TestEnvironment):
 
     def test_search_user_decks(self):
         response = self.client.get(
-            '/users/1/decks', headers=self.authorization1)
+            '/api/users/1/decks', headers=self.authorization1)
         self.assertEqual(response.status_code, 200)
 
         data = response.get_json()['data']
@@ -317,7 +317,7 @@ class TestUserRoutes(TestEnvironment):
 
     def test_search_user_decks_count_cards(self):
         response = self.client.get(
-            '/users/1/decks?card_count=all,new,due', headers=self.authorization1)
+            '/api/users/1/decks?card_count=all,new,due', headers=self.authorization1)
         self.assertEqual(response.status_code, 200)
 
         data = response.get_json()['data']
@@ -334,7 +334,7 @@ class TestUserRoutes(TestEnvironment):
 
     def test_search_user_decks_query(self):
         response = self.client.get(
-            '/users/1/decks?q=Jav', headers=self.authorization1)
+            '/api/users/1/decks?q=Jav', headers=self.authorization1)
         data = response.get_json()['data']
 
         self.assertEqual(response.status_code, 200)
@@ -342,7 +342,7 @@ class TestUserRoutes(TestEnvironment):
 
     def test_search_user_decks_limit(self):
         response = self.client.get(
-            '/users/1/decks?limit=1', headers=self.authorization1)
+            '/api/users/1/decks?limit=1', headers=self.authorization1)
         data = response.get_json()['data']
 
         self.assertEqual(response.status_code, 200)
@@ -351,12 +351,12 @@ class TestUserRoutes(TestEnvironment):
 
     def test_search_user_decks_invalid_limit(self):
         response = self.client.get(
-            '/users/1/decks?limit=invalid', headers=self.authorization1)
+            '/api/users/1/decks?limit=invalid', headers=self.authorization1)
         self.assertEqual(response.status_code, 400)
 
     def test_search_user_decks_limit_offset(self):
         response = self.client.get(
-            '/users/1/decks?limit=1&offset=1', headers=self.authorization1)
+            '/api/users/1/decks?limit=1&offset=1', headers=self.authorization1)
         data = response.get_json()['data']
 
         self.assertEqual(response.status_code, 200)
@@ -365,25 +365,25 @@ class TestUserRoutes(TestEnvironment):
 
     def test_search_user_decks_limit_invalid_offset(self):
         response = self.client.get(
-            '/users/1/decks?limit=1&offset=invalid', headers=self.authorization1)
+            '/api/users/1/decks?limit=1&offset=invalid', headers=self.authorization1)
         self.assertEqual(response.status_code, 400)
 
     def test_search_nonexistent_user_decks(self):
         response = self.client.get(
-            '/users/4/decks', headers=self.authorization1)
+            '/api/users/4/decks', headers=self.authorization1)
 
         self.assertEqual(response.status_code, 404)
 
     def test_search_user_decks_nonexistent_request_user(self):
-        self.client.delete('/users/3', headers=self.authorization3)
+        self.client.delete('/api/users/3', headers=self.authorization3)
         response = self.client.get(
-            '/users/1/decks', headers=self.authorization3)
+            '/api/users/1/decks', headers=self.authorization3)
 
         self.assertEqual(response.status_code, 404)
 
     def test_search_user_decks_nonexistent_unauthorized_user(self):
         response = self.client.get(
-            '/users/1/decks', headers=self.authorization2)
+            '/api/users/1/decks', headers=self.authorization2)
 
         self.assertEqual(response.status_code, 403)
 

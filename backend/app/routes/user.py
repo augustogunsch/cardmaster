@@ -8,7 +8,7 @@ from ..util.auth import token_required
 user_bp = Blueprint('user', __name__)
 
 
-@user_bp.route('/users', methods=['POST'])
+@user_bp.route('/api/users', methods=['POST'])
 def create_user():
     data = request.get_json()
     username = data.get('username')
@@ -28,7 +28,7 @@ def create_user():
     return jsonify({'data': new_user.get_json()}), 201
 
 
-@user_bp.route('/users/<int:user_id>', methods=['GET'])
+@user_bp.route('/api/users/<int:user_id>', methods=['GET'])
 def get_user(user_id):
     user = db.session.get(User, user_id)
 
@@ -38,7 +38,7 @@ def get_user(user_id):
     return jsonify({'data': user.get_json()}), 200
 
 
-@user_bp.route('/users', methods=['GET'])
+@user_bp.route('/api/users', methods=['GET'])
 def search_users():
     q = request.args.get('q')
     limit = request.args.get('limit')
@@ -71,7 +71,7 @@ def search_users():
     return jsonify({'data': result}), 200
 
 
-@user_bp.route('/users/<int:user_id>', methods=['PUT'])
+@user_bp.route('/api/users/<int:user_id>', methods=['PUT'])
 @token_required
 def update_user(jwt_data, user_id):
     user = db.session.get(User, user_id)
@@ -117,7 +117,7 @@ def update_user(jwt_data, user_id):
     return jsonify({'data': user.get_json()}), 200
 
 
-@user_bp.route('/users/<int:user_id>', methods=['DELETE'])
+@user_bp.route('/api/users/<int:user_id>', methods=['DELETE'])
 @token_required
 def delete_user(jwt_data, user_id):
     user = db.session.get(User, user_id)
@@ -141,7 +141,7 @@ def delete_user(jwt_data, user_id):
 # This actually creates a copy of the deck
 
 
-@user_bp.route('/users/<int:user_id>/decks/<int:deck_id>', methods=['POST'])
+@user_bp.route('/api/users/<int:user_id>/decks/<int:deck_id>', methods=['POST'])
 @token_required
 def add_deck(jwt_data, user_id, deck_id):
     user = db.session.get(User, user_id)
@@ -171,10 +171,10 @@ def add_deck(jwt_data, user_id, deck_id):
                        deck=new_deck) for card in deck.cards)
     db.session.commit()
 
-    return jsonify({'data': new_deck.get_json()}), 201
+    return jsonify({'data': new_deck.get_json(cards_count='all,due,new')}), 201
 
 
-@user_bp.route('/users/<int:user_id>/decks', methods=['GET'])
+@user_bp.route('/api/users/<int:user_id>/decks', methods=['GET'])
 @token_required
 def search_user_decks(jwt_data, user_id):
     user = db.session.get(User, user_id)

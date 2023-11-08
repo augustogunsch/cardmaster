@@ -7,7 +7,7 @@ from ..util.auth import token_required
 deck_bp = Blueprint('deck', __name__)
 
 
-@deck_bp.route('/decks', methods=['POST'])
+@deck_bp.route('/api/decks', methods=['POST'])
 @token_required
 def create_deck(jwt_data):
     user = db.session.get(User, jwt_data['user_id'])
@@ -28,7 +28,7 @@ def create_deck(jwt_data):
     return jsonify({'data': deck.get_json()}), 201
 
 
-@deck_bp.route('/decks/<int:deck_id>', methods=['GET'])
+@deck_bp.route('/api/decks/<int:deck_id>', methods=['GET'])
 @token_required
 def get_deck(jwt_data, deck_id):
     user = db.session.get(User, jwt_data['user_id'])
@@ -54,7 +54,7 @@ def get_deck(jwt_data, deck_id):
     }), 200
 
 
-@deck_bp.route('/decks/<int:deck_id>', methods=['PUT'])
+@deck_bp.route('/api/decks/<int:deck_id>', methods=['PUT'])
 @token_required
 def update_deck(jwt_data, deck_id):
     user = db.session.get(User, jwt_data['user_id'])
@@ -82,7 +82,7 @@ def update_deck(jwt_data, deck_id):
     return jsonify({'data': deck.get_json()}), 200
 
 
-@deck_bp.route('/decks/<int:deck_id>', methods=['DELETE'])
+@deck_bp.route('/api/decks/<int:deck_id>', methods=['DELETE'])
 @token_required
 def delete_deck(jwt_data, deck_id):
     user = db.session.get(User, jwt_data['user_id'])
@@ -105,7 +105,7 @@ def delete_deck(jwt_data, deck_id):
     return jsonify({'data': data}), 200
 
 
-@deck_bp.route('/decks', methods=['GET'])
+@deck_bp.route('/api/decks', methods=['GET'])
 def search_decks():
     q = request.args.get('q')
     limit = request.args.get('limit')
