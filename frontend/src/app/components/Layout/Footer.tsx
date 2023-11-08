@@ -29,17 +29,10 @@ const Footer = (): React.JSX.Element => {
         <GitHub />
         <Link
           color="inherit"
-          href="https://github.com/augustogunsch/cardmaster-backend"
+          href="https://github.com/augustogunsch/cardmaster"
           target="_blank"
         >
-          Backend
-        </Link>
-        <Link
-          color="inherit"
-          href="https://github.com/augustogunsch/cardmaster-frontend"
-          target="_blank"
-        >
-          Frontend
+          Repository
         </Link>
       </Typography>
       <Typography

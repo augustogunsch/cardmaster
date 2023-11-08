@@ -19,7 +19,7 @@ const End = ({ handleClose }: IProps): React.JSX.Element => {
       maxWidth="sm"
     >
       <Typography>
-        Congratulations! You finished this revision session.
+        Congratulations! You finished this review session.
       </Typography>
       <Button
         onClick={handleClose}
