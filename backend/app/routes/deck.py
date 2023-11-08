@@ -118,16 +118,26 @@ def search_decks():
 
     query = Deck.query.filter(Deck.shared == True)
 
-    if q:
+    if q is not None:
         query = query.filter(Deck.name.ilike(f'%{q}%'))
 
     if total_count:
         total_count = query.count()
 
-    if limit:
+    if limit is not None:
+        try:
+            limit = max(int(limit), 0)
+        except:
+            return jsonify({'message': 'Limit must be an integer'}), 400
+
         query = query.limit(limit)
 
-        if offset:
+        if offset is not None:
+            try:
+                offset = max(int(offset), 0)
+            except:
+                return jsonify({'message': 'Offset must be an integer'}), 400
+
             query = query.offset(offset)
 
     decks = query.all()

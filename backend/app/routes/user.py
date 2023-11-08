@@ -46,13 +46,23 @@ def search_users():
 
     query = db.session.query(User)
 
-    if q:
+    if q is not None:
         query = query.filter(User.username.ilike(f'%{q}%'))
 
-    if limit:
+    if limit is not None:
+        try:
+            limit = max(int(limit), 0)
+        except:
+            return jsonify({'message': 'Limit must be an integer'}), 400
+
         query = query.limit(limit)
 
-        if offset:
+        if offset is not None:
+            try:
+                offset = max(int(offset), 0)
+            except:
+                return jsonify({'message': 'Offset must be an integer'}), 400
+
             query = query.offset(offset)
 
     users = query.all()
@@ -190,13 +200,23 @@ def search_user_decks(jwt_data, user_id):
 
     query = Deck.query.filter(Deck.user_id == user.id)
 
-    if q:
+    if q is not None:
         query = query.filter(Deck.name.ilike(f'%{q}%'))
 
-    if limit:
+    if limit is not None:
+        try:
+            limit = max(int(limit), 0)
+        except:
+            return jsonify({'message': 'Limit must be an integer'}), 400
+
         query = query.limit(limit)
 
-        if offset:
+        if offset is not None:
+            try:
+                offset = max(int(offset), 0)
+            except:
+                return jsonify({'message': 'Offset must be an integer'}), 400
+
             query = query.offset(offset)
 
     decks = query.all()

@@ -111,6 +111,18 @@ class TestUserRoutes(TestEnvironment):
 
         self.assertEqual(data[0]['username'], 'test_user1')
 
+    def test_search_users_query_invalid_limit(self):
+        user1 = User(username='test_user1', password='testpassword')
+        user2 = User(username='test_user2', password='testpassword')
+
+        with self.app.app_context():
+            db.session.add(user1)
+            db.session.add(user2)
+            db.session.commit()
+
+        response = self.client.get('/users?q=test_user&limit=notnumber')
+        self.assertEqual(response.status_code, 400)
+
     def test_search_users_query_limit_offset(self):
         user1 = User(username='test_user1', password='testpassword')
         user2 = User(username='test_user2', password='testpassword')
@@ -127,6 +139,18 @@ class TestUserRoutes(TestEnvironment):
         self.assertEqual(len(data), 1)
 
         self.assertEqual(data[0]['username'], 'test_user2')
+
+    def test_search_users_query_limit_invalid_offset(self):
+        user1 = User(username='test_user1', password='testpassword')
+        user2 = User(username='test_user2', password='testpassword')
+
+        with self.app.app_context():
+            db.session.add(user1)
+            db.session.add(user2)
+            db.session.commit()
+
+        response = self.client.get('/users?q=test_user&limit=1&offset=invalid')
+        self.assertEqual(response.status_code, 400)
 
     def test_update_user(self):
         request_data = {
@@ -325,6 +349,11 @@ class TestUserRoutes(TestEnvironment):
         self.assertEqual(len(data), 1)
         self.assertEqual(data[0]['name'], 'Javanese')
 
+    def test_search_user_decks_invalid_limit(self):
+        response = self.client.get(
+            '/users/1/decks?limit=invalid', headers=self.authorization1)
+        self.assertEqual(response.status_code, 400)
+
     def test_search_user_decks_limit_offset(self):
         response = self.client.get(
             '/users/1/decks?limit=1&offset=1', headers=self.authorization1)
@@ -333,6 +362,11 @@ class TestUserRoutes(TestEnvironment):
         self.assertEqual(response.status_code, 200)
         self.assertEqual(len(data), 1)
         self.assertEqual(data[0]['name'], 'Japanese')
+
+    def test_search_user_decks_limit_invalid_offset(self):
+        response = self.client.get(
+            '/users/1/decks?limit=1&offset=invalid', headers=self.authorization1)
+        self.assertEqual(response.status_code, 400)
 
     def test_search_nonexistent_user_decks(self):
         response = self.client.get(

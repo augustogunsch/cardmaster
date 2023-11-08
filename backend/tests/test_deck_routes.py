@@ -156,6 +156,10 @@ class TestDeckRoutes(TestEnvironment):
 
         self.assertEqual(data[0]['name'], 'Javanese')
 
+    def test_search_decks_search_invalid_limit(self):
+        response = self.client.get('/decks?q=nese&limit=invalid')
+        self.assertEqual(response.status_code, 400)
+
     def test_search_decks_limit_offset(self):
         response = self.client.get('/decks?q=nese&limit=1&offset=1')
         data = response.get_json()['data']
@@ -164,6 +168,10 @@ class TestDeckRoutes(TestEnvironment):
         self.assertEqual(len(data), 1)
 
         self.assertEqual(data[0]['name'], 'Japanese')
+
+    def test_search_decks_search_limit_invalid_offset(self):
+        response = self.client.get('/decks?q=nese&limit=1&offset=invalid')
+        self.assertEqual(response.status_code, 400)
 
 
 if __name__ == '__main__':

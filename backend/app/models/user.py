@@ -6,7 +6,7 @@ from werkzeug.security import generate_password_hash, check_password_hash
 class User(db.Model):
     id = db.Column(db.Integer, primary_key=True)
     username = db.Column(db.String(80), unique=True, nullable=False)
-    password_hash = db.Column(db.String(128), nullable=False)
+    password_hash = db.Column(db.String(162), nullable=False)
     decks = db.relationship('Deck', back_populates='user', foreign_keys=[
                             Deck.user_id], cascade='all, delete-orphan')
     admin = db.Column(db.Boolean, default=False)

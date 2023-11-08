@@ -90,13 +90,23 @@ def search_cards(jwt_data, deck_id):
 
         query = query.filter(Card.last_revised == revised)
 
-    if q:
+    if q is not None:
         query = query.filter(Card.front.ilike(f'%{q}%'))
 
-    if limit:
+    if limit is not None:
+        try:
+            limit = max(int(limit), 0)
+        except:
+            return jsonify({'message': 'Limit must be an integer'}), 400
+
         query = query.limit(limit)
 
-        if offset:
+        if offset is not None:
+            try:
+                offset = max(int(offset), 0)
+            except:
+                return jsonify({'message': 'Offset must be an integer'}), 400
+
             query = query.offset(offset)
 
     if count:

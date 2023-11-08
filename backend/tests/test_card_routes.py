@@ -188,6 +188,11 @@ class TestCardRoutes(TestEnvironment):
         self.assertEqual(len(data), 1)
         self.assertEqual(data[0]['front'], 'apfel')
 
+    def test_search_cards_invalid_limit(self):
+        response = self.client.get(
+            '/decks/3/cards?limit=invalid', headers=self.authorization2)
+        self.assertEqual(response.status_code, 400)
+
     def test_search_cards_limit_offset(self):
         response = self.client.get(
             '/decks/3/cards?limit=1&offset=1', headers=self.authorization2)
@@ -196,6 +201,11 @@ class TestCardRoutes(TestEnvironment):
         self.assertEqual(response.status_code, 200)
         self.assertEqual(len(data), 1)
         self.assertEqual(data[0]['front'], 'frau')
+
+    def test_search_cards_limit_invalid_offset(self):
+        response = self.client.get(
+            '/decks/3/cards?limit=1&offset=invalid', headers=self.authorization2)
+        self.assertEqual(response.status_code, 400)
 
     def test_get_card(self):
         response = self.client.get('/cards/1', headers=self.authorization2)
