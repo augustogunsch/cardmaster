@@ -1,4 +1,4 @@
 #!/bin/sh
 set -e
 
-./venv/bin/pytest backend --cov=app --cov-fail-under=100 --cov-report=html
+./backend/venv/bin/pytest backend --cov=app --cov-fail-under=100 --cov-report=html

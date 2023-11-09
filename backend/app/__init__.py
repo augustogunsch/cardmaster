@@ -1,8 +1,8 @@
 import os
-from dotenv import load_dotenv
 from flask import Flask
 from flask_migrate import Migrate
 from flask_cors import CORS
+from dotenv import load_dotenv
 from .extensions import db
 from .routes import user_bp, deck_bp, auth_bp, card_bp, frontend_bp
 
