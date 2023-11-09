@@ -25,7 +25,7 @@ def create_deck(jwt_data):
     db.session.add(deck)
     db.session.commit()
 
-    return jsonify({'data': deck.get_json()}), 201
+    return jsonify({'data': deck.get_json(cards_count='all,new,due')}), 201
 
 
 @deck_bp.route('/api/decks/<int:deck_id>', methods=['GET'])
@@ -44,13 +44,13 @@ def get_deck(jwt_data, deck_id):
     if not deck.shared and deck.user_id != user.id:
         return jsonify({'message': 'You do not own this deck'}), 403
 
-    card_count = request.args.get('card_count')
+    cards_count = request.args.get('card_count')
 
-    if card_count != None:
-        card_count = card_count.split(',')
+    if cards_count != None:
+        cards_count = cards_count.split(',')
 
     return jsonify({
-        'data': deck.get_json(card_count, tzutcdelta=user.tzutcdelta)
+        'data': deck.get_json(cards_count, tzutcdelta=user.tzutcdelta)
     }), 200
 
 

@@ -176,7 +176,7 @@ def update_card(jwt_data, card_id):
 
     if knowledge_level != None:
         try:
-            card.knowledge_level = int(knowledge_level)
+            card.knowledge_level = min(max(int(knowledge_level), 0), 4)
         except:
             return jsonify({'message': 'Field "knowledge_level" must be an integer'}), 400
 
